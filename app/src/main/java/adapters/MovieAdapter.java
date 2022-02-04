@@ -1,6 +1,7 @@
 package adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +45,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         Movie movie = movies.get(position);
         // Bind the movie data into the ViewHolder
         holder.bind(movie);
+        holder.tvTitle.setTextColor(Color.WHITE);
+        holder.tvOverview.setTextColor(Color.WHITE);
     }
 
     // Returns the total count of items in the list
