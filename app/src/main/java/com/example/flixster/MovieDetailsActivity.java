@@ -7,11 +7,24 @@ import android.util.Log;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.codepath.asynchttpclient.AsyncHttpClient;
+import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 import com.example.flixster.models.Movie;
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.parceler.Parcels;
 
-public class MovieDetailsActivity extends AppCompatActivity {
+import okhttp3.Headers;
+
+public class MovieDetailsActivity extends YouTubeBaseActivity {
+
+    private static final String YOUTUBE_API_KEY = "AIzaSyB_-XB90QyrCWEzOw7r7axUWBbfSAJQp7o";
+    public static final String VIDEO_URL = "https://api.themoviedb.org/3/movie/%d/videos?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed";
 
     // The movie we are displaying
     Movie movie;
@@ -20,6 +33,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     TextView tvDetailTitle;
     RatingBar rbVoteAverage;
     TextView tvDetailOverview;
+    YouTubePlayerView youTubePlayerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +44,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         tvDetailTitle = (TextView) findViewById(R.id.tvDetailTitle);
         rbVoteAverage = (RatingBar) findViewById(R.id.rbVoteAverage);
         tvDetailOverview = (TextView) findViewById(R.id.tvDetailOverview);
+        youTubePlayerView = findViewById(R.id.player);
 
         // Unwrap the parceled movie intent using the SimpleName as key
         movie = (Movie) Parcels.unwrap(getIntent().getParcelableExtra(Movie.class.getSimpleName()));
@@ -39,5 +54,45 @@ public class MovieDetailsActivity extends AppCompatActivity {
         tvDetailTitle.setText(movie.getTitle());
         tvDetailOverview.setText(movie.getOverview());
         rbVoteAverage.setRating(movie.getVoteAverage().floatValue() / 2.0f);
+
+        // Get the the youtube video
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(String.format(VIDEO_URL, movie.getMovieId()), new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                try {
+                    JSONArray results = json.jsonObject.getJSONArray("results");
+                    if (results.length() == 0) {
+                        return;
+                    }
+                    String youtubeKey = results.getJSONObject(0).getString("key");
+                    Log.d("DetailActivity", youtubeKey);
+                    initializeYoutube(youtubeKey);
+                } catch (JSONException e) {
+                    Log.e("DetailActivity", "Failed to parse JSON", e);
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+
+            }
+        });
+    }
+
+    private void initializeYoutube(String youtubeKey) {
+        // Play the youtube video
+        youTubePlayerView.initialize(YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
+            @Override
+            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                Log.d("DetailActivity", "onInitializationSuccess");
+                youTubePlayer.cueVideo(youtubeKey);
+            }
+
+            @Override
+            public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                Log.d("DetailActivity", "onInitializationFailure");
+            }
+        });
     }
 }
