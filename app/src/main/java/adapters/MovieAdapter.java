@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.flixster.MovieDetailsActivity;
 import com.example.flixster.R;
+import com.example.flixster.databinding.ItemMovieBinding;
 import com.example.flixster.models.Movie;
 
 import org.parceler.Parcels;
@@ -25,6 +26,7 @@ import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
+    private ItemMovieBinding binding;
     Context context;
     List<Movie> movies;
 
@@ -73,6 +75,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             ivPoster = itemView.findViewById(R.id.ivPoster);
             // add this viewholder as the itemView's OnClickListener
             itemView.setOnClickListener(this);
+            // Since the layout was already inflated within onCreateViewHolder(), we
+            // can use this bind() method to associate the layout variables
+            // with the layout.
+            binding = ItemMovieBinding.bind(itemView);
         }
 
         public void bind(Movie movie) {
